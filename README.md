@@ -1,3 +1,5 @@
+![Maza shouts 'oeoe'](https://i.imgur.com/NNlnNE1.png)
+
 # MUD messaging plugin
 This is a simple plugin designed to watch a log file and popup a notification on the desktop
 any time new data is appended (f.e. tells, shouts, etc).
@@ -9,3 +11,8 @@ any time new data is appended (f.e. tells, shouts, etc).
 4. Open the extension by clicking on 'Arctic' in the top right of the screen.
 5. Update the log location from `/dev/null` to wherever you are logging to.
 6. Press the 'Update log location' button.
+
+# TODO:
+1. Center notification text (requires extending MessageTray)
+2. Reply to tells from notification popup
+3. Better text input box for log location
