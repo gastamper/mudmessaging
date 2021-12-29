@@ -22,9 +22,12 @@ class Indicator extends panelMenu.Button {
         super._init(0);
         thisObj = this;
 
-        // Set taskbar label for extension
-        let label = new St.Label({ text: "Arctic" });
-        this.add_child(label);
+        // Set taskbar icon for extension
+        let gicon = Gio.icon_new_for_string(`${Me.path}/icon.svg`);
+        let icon = new St.Icon({ gicon, icon_size: 16 });
+        //let label = new St.Label({ text: "Arctic" });
+        //this.add_child(label);
+        this.add_child(icon);
 
         // Initialize pull-down menu
         // 1. Build log menu & text box
