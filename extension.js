@@ -12,6 +12,7 @@ const Me = ExtensionUtils.getCurrentExtension();
 // Globals for calling out of functions to self
 let menu;
 let thisObj;
+let lastline = "";
 
 // Extend panelMenu.Button with necessary functionality
 const Indicator = GObject.registerClass(
@@ -54,7 +55,12 @@ class Indicator extends panelMenu.Button {
                 let [success, contents] = thisObj.log.load_contents(null);
                 if (success) { 
                     let ba = ByteArray.toString(contents);
-                    main.notify(ba);
+                    // For whatever reason, changed signal sends empty lines and will duplicate
+                    // the last line written, so check for an exclude all that.
+                    if ( ba.length != 0 && ba != lastline ) {
+                        lastline = ba;
+                        main.notify(ba);
+                    }
                 } else {
                     main.notify("Reading log file failed");
                 }
