@@ -1,0 +1,10 @@
+{
+    "name": "MUD Messaging",
+    "version": "1.0",
+    "description": "Show messaging from MUDs as desktop notifications",
+    "uuid": "mudmessaging@gastamper.github.io",
+    "shell-version": [
+      "3.36"
+    ]
+  }
+  
