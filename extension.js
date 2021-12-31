@@ -11,8 +11,6 @@ const Me = ExtensionUtils.getCurrentExtension();
 
 // Globals for calling out of functions to self
 let menu;
-let thisObj;
-let lastline = "";
 
 // Extend panelMenu.Button with necessary functionality
 const Indicator = GObject.registerClass(
@@ -20,20 +18,18 @@ class Indicator extends panelMenu.Button {
     _init() {
         // Init with 0 else no dimensions
         super._init(0);
-        thisObj = this;
+        this.lastline = "";
 
         // Set taskbar icon for extension
         let gicon = Gio.icon_new_for_string(`${Me.path}/icon.svg`);
         let icon = new St.Icon({ gicon, icon_size: 16 });
-        //let label = new St.Label({ text: "Arctic" });
-        //this.add_child(label);
         this.add_child(icon);
 
         // Initialize pull-down menu
         // 1. Build log menu & text box
         this.log = Gio.File.new_for_path("/dev/null");
         this.menuItem = new popupMenu.PopupMenuItem('Log location:');
-        this.logLocation = new St.Label({ text: this.log.get_path() });
+        this.logLocation = new St.Label({ text: "Click here & type full path to log"});
         this.logLocation.clutter_text.set_reactive(true);
         this.logLocation.clutter_text.set_editable(true);
         this.logLocation.clutter_text.set_activatable(true);
@@ -41,7 +37,11 @@ class Indicator extends panelMenu.Button {
         // 2. Build button to trigger reload of log file location
         this.menu.addMenuItem(this.menuItem);
         this.updateLog = new popupMenu.PopupMenuItem('Update log location');
-        this.updateLog.actor.connect('button_press_event', this._updateLogLocation);
+        this.updateLog.actor.connect('button_press_event', function() {
+            this.monitor.cancel();
+            this.log = Gio.File.new_for_path(this.logLocation.get_text());
+            this._buildMonitor();
+        }.bind(this));
         this.menu.addMenuItem(this.updateLog);
         // 3. Build a file monitor to watch log file for changes
         this._buildMonitor();
@@ -55,25 +55,20 @@ class Indicator extends panelMenu.Button {
             log("Couldn't create monitor for log file");
         } else {
             this.monitor.connect('changed', function (file, otherfile, eventType) {
-                let [success, contents] = thisObj.log.load_contents(null);
+                let [success, contents] = this.log.load_contents(null);
                 if (success) { 
                     let ba = ByteArray.toString(contents);
                     // For whatever reason, changed signal sends empty lines and will duplicate
-                    // the last line written, so check for an exclude all that.
-                    if ( ba.length != 0 && ba != lastline ) {
-                        lastline = ba;
+                    // the last line written, so check for and exclude all that.
+                    if ( ba.length != 0 && ba != this.lastline ) {
+                        this.lastline = ba;
                         main.notify(ba);
                     }
                 } else {
                     main.notify("Reading log file failed");
                 }
-            });
+            }.bind(this));
         }
-    }
-    _updateLogLocation() {
-        thisObj.monitor.cancel();
-        thisObj.log = Gio.File.new_for_path(thisObj.logLocation.get_text());
-        thisObj._buildMonitor();
     }
 });
 
