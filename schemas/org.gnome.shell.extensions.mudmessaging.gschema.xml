@@ -7,7 +7,7 @@
       <summary>Enables the extension</summary>
     </key>
     <key name="logfile" type="s">
-      <default>"us"</default>
+      <default>"/dev/null"</default>
       <summary>"Path to log file"</summary>
     </key>
   </schema>

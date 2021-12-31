@@ -1,6 +1,7 @@
 // General imports
 const {St, Gio, GLib, GObject} = imports.gi;
 const {main, panelMenu, popupMenu} = imports.ui;
+const Util = imports.misc.util;
 
 // For converting load_contents guint8/CUCHAR to string
 const ByteArray = imports.byteArray;
@@ -25,14 +26,14 @@ class Indicator extends panelMenu.Button {
         let icon = new St.Icon({ gicon, icon_size: 16 });
         this.add_child(icon);
 
+        // Add settings
+        this.settings = ExtensionUtils.getSettings('org.gnome.shell.extensions.mudmessaging');
+
         // Initialize pull-down menu
         // 1. Build log menu & text box
-        this.log = Gio.File.new_for_path("/dev/null");
+        this.log = Gio.File.new_for_path(this.settings.get_string('logfile'));
         this.menuItem = new popupMenu.PopupMenuItem('Log location:');
-        this.logLocation = new St.Label({ text: "Click here & type full path to log"});
-        this.logLocation.clutter_text.set_reactive(true);
-        this.logLocation.clutter_text.set_editable(true);
-        this.logLocation.clutter_text.set_activatable(true);
+        this.logLocation = new St.Label({ text: this.log.get_path() });
         this.menuItem.add_child(this.logLocation);
         // 2. Build button to trigger reload of log file location
         this.menu.addMenuItem(this.menuItem);
@@ -40,11 +41,17 @@ class Indicator extends panelMenu.Button {
         this.updateLog.actor.connect('button_press_event', function() {
             this.monitor.cancel();
             this.log = Gio.File.new_for_path(this.logLocation.get_text());
+            this.logLocation.set_text(this.settings.get_string('logfile'));
             this._buildMonitor();
         }.bind(this));
         this.menu.addMenuItem(this.updateLog);
         // 3. Build a file monitor to watch log file for changes
         this._buildMonitor();
+        let settingsItem = new popupMenu.PopupMenuItem('Settings');
+		settingsItem.connect('button-press-event', () => {
+			Util.spawnCommandLine('gnome-extensions prefs mudmessaging@gastamper.github.io');
+		});
+		this.menu.addMenuItem(settingsItem);
     }
 
     _buildMonitor() {
