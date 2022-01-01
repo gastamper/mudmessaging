@@ -67,12 +67,14 @@ class Indicator extends panelMenu.Button {
             log("Couldn't create monitor for log file");
         } else {
             this.monitorConnect = this.monitor.connect('changed', function (file, otherfile, eventType) {
+                if ( this.settings.get_boolean('enabled') ) {
                     // read_line returns array[byteArray, len]
                     let data = this.dataStream.read_line(null);
                     // Ensure line isn't zero-length
                     if ( data.pop() != 0) {
                         main.notify(ByteArray.toString(data.pop()));
                     }
+                }
             }.bind(this));
         }
     }
