@@ -66,10 +66,10 @@ class Indicator extends panelMenu.Button {
             this.monitor.connect('changed', function (file, otherfile, eventType) {
                 let [success, contents] = this.log.load_contents(null);
                 if (success) { 
-                    let ba = ByteArray.toString(contents);
-                    // For whatever reason, changed signal sends empty lines and will duplicate
-                    // the last line written, so check for and exclude all that.
-                    if ( ba.length != 0 && ba != this.lastline ) {
+                    const arr = ByteArray.toString(contents).split(/\r?\n/);
+                    // arr.length-1 is actually EOF
+                    let ba = arr[arr.length-2];
+                    if ( ba != this.lastline ) {
                         this.lastline = ba;
                         main.notify(ba);
                     }
