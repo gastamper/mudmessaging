@@ -47,8 +47,12 @@ class Indicator extends panelMenu.Button {
         }.bind(this));
         this.menu.addMenuItem(this.updateLog);
         // 3. Build a file monitor to watch log file for changes
+        this.fileStream = this.log.read(null);
+        // Seek to end of file, then generate a DIS for the monitor to read from
+        this.fileStream.seek(0, 2, null);
+        this.dataStream = Gio.DataInputStream.new(this.fileStream);
         this._buildMonitor();
-        // 4. Add settings support
+        // 4. Add settings menu
         let settingsItem = new popupMenu.PopupMenuItem('Settings');
 		settingsItem.connect('button-press-event', () => {
 			Util.spawnCommandLine('gnome-extensions prefs mudmessaging@gastamper.github.io');
@@ -56,26 +60,19 @@ class Indicator extends panelMenu.Button {
 		this.menu.addMenuItem(settingsItem);
     }
 
+    // Build a file monitor to watch for changes, and then notify when such occurs
     _buildMonitor() {
-        // Gio.File.Monitor isn't really capable of rendering errors (can't read, etc)
-        // so the only real error checking that is possible is on load_contents.
         this.monitor = this.log.monitor(Gio.FileMonitorFlags.NONE, null);
         if ( ! this.monitor ) {
             log("Couldn't create monitor for log file");
         } else {
             this.monitor.connect('changed', function (file, otherfile, eventType) {
-                let [success, contents] = this.log.load_contents(null);
-                if (success) { 
-                    const arr = ByteArray.toString(contents).split(/\r?\n/);
-                    // arr.length-1 is actually EOF
-                    let ba = arr[arr.length-2];
-                    if ( ba != this.lastline ) {
-                        this.lastline = ba;
-                        main.notify(ba);
+                    // read_line returns array[byteArray, len]
+                    let data = this.dataStream.read_line(null);
+                    // Ensure line isn't zero-length
+                    if ( data.pop() != 0) {
+                        main.notify(ByteArray.toString(data.pop()));
                     }
-                } else {
-                    main.notify("Reading log file failed");
-                }
             }.bind(this));
         }
     }
