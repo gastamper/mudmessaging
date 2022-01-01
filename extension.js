@@ -39,7 +39,7 @@ class Indicator extends panelMenu.Button {
         // 2. Build button to trigger reload of log file location
         this.menu.addMenuItem(this.menuItem);
         this.updateLog = new popupMenu.PopupMenuItem('Update log location');
-        this.updateLog.actor.connect('button_press_event', function() {
+        this.updateConnect = this.updateLog.actor.connect('button_press_event', function() {
             this.monitor.cancel();
             this.log = Gio.File.new_for_path(this.logLocation.get_text());
             this.logLocation.set_text(this.settings.get_string('logfile'));
@@ -53,11 +53,11 @@ class Indicator extends panelMenu.Button {
         this.dataStream = Gio.DataInputStream.new(this.fileStream);
         this._buildMonitor();
         // 4. Add settings menu
-        let settingsItem = new popupMenu.PopupMenuItem('Settings');
-		settingsItem.connect('button-press-event', () => {
+        this.settingsItem = new popupMenu.PopupMenuItem('Settings');
+		this.settingsConnect = this.settingsItem.connect('button-press-event', () => {
 			Util.spawnCommandLine('gnome-extensions prefs mudmessaging@gastamper.github.io');
 		});
-		this.menu.addMenuItem(settingsItem);
+		this.menu.addMenuItem(this.settingsItem);
     }
 
     // Build a file monitor to watch for changes, and then notify when such occurs
@@ -66,7 +66,7 @@ class Indicator extends panelMenu.Button {
         if ( ! this.monitor ) {
             log("Couldn't create monitor for log file");
         } else {
-            this.monitor.connect('changed', function (file, otherfile, eventType) {
+            this.monitorConnect = this.monitor.connect('changed', function (file, otherfile, eventType) {
                     // read_line returns array[byteArray, len]
                     let data = this.dataStream.read_line(null);
                     // Ensure line isn't zero-length
@@ -75,6 +75,12 @@ class Indicator extends panelMenu.Button {
                     }
             }.bind(this));
         }
+    }
+
+    _quit() {
+        this.monitor.disconnect(this.monitorConnect);
+        this.updateLog.disconnect(this.updateConnect);
+        this.settingsItem.disconnect(this.settingsConnect);
     }
 });
 
@@ -89,6 +95,7 @@ function enable() {
 
 function disable() {
     // GNOME shell extensions are required to clean up after themselves
+    menu._quit();
     if (menu != null) {
         menu.destroy();
         menu = null;
