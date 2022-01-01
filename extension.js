@@ -19,6 +19,7 @@ class Indicator extends panelMenu.Button {
     _init() {
         // Init with 0 else no dimensions
         super._init(0);
+        // Track last received line to ensure no repetition
         this.lastline = "";
 
         // Set taskbar icon for extension
@@ -47,6 +48,7 @@ class Indicator extends panelMenu.Button {
         this.menu.addMenuItem(this.updateLog);
         // 3. Build a file monitor to watch log file for changes
         this._buildMonitor();
+        // 4. Add settings support
         let settingsItem = new popupMenu.PopupMenuItem('Settings');
 		settingsItem.connect('button-press-event', () => {
 			Util.spawnCommandLine('gnome-extensions prefs mudmessaging@gastamper.github.io');
