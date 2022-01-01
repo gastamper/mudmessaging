@@ -55,7 +55,15 @@ class Indicator extends panelMenu.Button {
         // 4. Add settings menu
         this.settingsItem = new popupMenu.PopupMenuItem('Settings');
 		this.settingsConnect = this.settingsItem.connect('button-press-event', () => {
-			Util.spawnCommandLine('gnome-extensions prefs mudmessaging@gastamper.github.io');
+            try {
+                let proc = Gio.Subprocess.new(
+                    ['gnome-extensions', 'prefs', 'mudmessaging@gastamper.github.io'],
+                    Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
+                )
+            }
+            catch (e) {
+                logError(e);
+            }
 		});
 		this.menu.addMenuItem(this.settingsItem);
     }
