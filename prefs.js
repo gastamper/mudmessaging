@@ -18,20 +18,11 @@ function buildPrefsWidget() {
 
     // Create a parent widget that we'll return from this function
     let prefsWidget = new Gtk.Grid({
-        margin: 18,
-        column_spacing: 12,
+        margin: 36,
+        column_spacing: 24,
         row_spacing: 12,
         visible: true
     });
-
-    // Add a simple title and add it to the prefsWidget
-    let title = new Gtk.Label({
-        label: `<b>${Me.metadata.name} Preferences</b>`,
-        halign: Gtk.Align.START,
-        use_markup: true,
-        visible: true
-    });
-    prefsWidget.attach(title, 0, 0, 2, 1);
 
     // Create a label & switch for `renabled`
     let enabledLabel = new Gtk.Label({
@@ -39,31 +30,33 @@ function buildPrefsWidget() {
         halign: Gtk.Align.START,
         visible: true
     });
-    prefsWidget.attach(enabledLabel, 0, 1, 1, 1);
+    prefsWidget.attach(enabledLabel, 0, 0, 1, 1);
 
     let enabled = new Gtk.Switch({
         active: this.settings.get_boolean ('enabled'),
         halign: Gtk.Align.END,
         visible: true
     });
-    prefsWidget.attach(enabled, 1, 1, 1, 1);
+    prefsWidget.attach(enabled, 1, 0, 1, 1);
 
-    // Create a label & entry for 'restricted-country
+    // Create a label & entry for log file
     let logfileLabel = new Gtk.Label({
         label: 'Log file location',
         halign: Gtk.Align.START,
         visible: true
     });
-    prefsWidget.attach(logfileLabel, 0, 2, 1, 1);
+    prefsWidget.attach(logfileLabel, 0, 1, 1, 1);
 
     let logfile = new Gtk.Entry({
         text: this.settings.get_string ('logfile'),
         halign: Gtk.Align.END,
+        placeholder_text: "Type full path to log here...",
+        hexpand: true,
         visible: true
     });
-    prefsWidget.attach(logfile, 1, 2, 1, 1);    
+    prefsWidget.attach(logfile, 1, 1, 1, 1);    
 
-    // Bind the switch to the `restrict` key
+    // Bind settings to items
     this.settings.bind(
         'enabled',
         enabled,
